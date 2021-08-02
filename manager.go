@@ -1,6 +1,7 @@
 package rsa
 
 import (
+	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -75,11 +76,37 @@ func (m *KeyManager) Encrypt(plainText []byte, label []byte) (string, error) {
 }
 
 // 解密
-func (m *KeyManager) Decrypt(plainText string, label []byte) ([]byte, error) {
+func (m *KeyManager) Decrypt(cipherText string, label []byte) ([]byte, error) {
 	rng := rand.Reader
-	ct, err := base64.StdEncoding.DecodeString(plainText)
+	ct, err := base64.StdEncoding.DecodeString(cipherText)
 	if err != nil {
 		return nil, err
 	}
 	return rsa.DecryptOAEP(sha256.New(), rng, m.Key.privateKey, ct, label)
+}
+
+// 签名
+func (m *KeyManager) Sign(plainText []byte) ([]byte, error) {
+	hash := sha256.New()
+	_, err := hash.Write(plainText)
+	if err != nil {
+		return nil, err
+	}
+	hashSum := hash.Sum(nil)
+	signature, err := rsa.SignPSS(rand.Reader, m.Key.privateKey, crypto.SHA256, hashSum, nil)
+	if err != nil {
+		return nil, err
+	}
+	return signature, nil
+}
+
+// 验证
+func (m *KeyManager) Verify(plainText []byte, signature []byte) error {
+	hash := sha256.New()
+	_, err := hash.Write(plainText)
+	if err != nil {
+		return err
+	}
+	hashSum := hash.Sum(nil)
+	return rsa.VerifyPSS(m.Key.publicKey, crypto.SHA256, hashSum, signature, nil)
 }

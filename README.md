@@ -13,6 +13,7 @@ go get github.com/maplepie/rsa
 RSA is designed to encrypt or decrypt data. It supports:
 
 * encrypt or decrypt data
+* sign and verify data
 * reading from `PEM`, `SSH-RSA`, `OpenSSH` key files
 * writing to `PEM`, `SSH-RSA` key files
 * generate key
